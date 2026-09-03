@@ -73,7 +73,7 @@ from common_pipeline import (
     generate_masks,
     filter_background_masks,
     merge_nested_masks,
-    pad_bbox,
+    crop_masked_object,
 )
 from common_dino import DINOFeatureExtractor, LabelMatcher
 
@@ -110,10 +110,11 @@ UNKNOWN_LABEL = "unknown"
 def classify_objects(extractor: DINOFeatureExtractor, matcher: LabelMatcher,
                       roi_bgr: np.ndarray, masks_info: list):
     """
-    Voi tung vat trong masks_info: crop (co padding) -> BGR->RGB -> trich
-    feature DINOv3 THEO LO (1 lan forward cho ca list, nhanh hon lap tung
-    cai) -> so khop voi tat ca nhan. Tra ve list (label, similarity) cung
-    thu tu voi masks_info; similarity < SIMILARITY_THRESHOLD -> UNKNOWN_LABEL.
+    Voi tung vat trong masks_info: crop DUNG THEO MASK (nen/vat ben canh
+    trong bbox bi thay mau trang, xem crop_masked_object) -> BGR->RGB ->
+    trich feature DINOv3 THEO LO (1 lan forward cho ca list, nhanh hon lap
+    tung cai) -> so khop voi tat ca nhan. Tra ve list (label, similarity)
+    cung thu tu voi masks_info; similarity < SIMILARITY_THRESHOLD -> UNKNOWN_LABEL.
     """
     if len(masks_info) == 0:
         return []
@@ -121,9 +122,7 @@ def classify_objects(extractor: DINOFeatureExtractor, matcher: LabelMatcher,
     roi_h, roi_w = roi_bgr.shape[:2]
     crops_rgb = []
     for info in masks_info:
-        x, y, w, h = info["bbox"]
-        x0, y0, x1, y1 = pad_bbox(x, y, w, h, roi_w, roi_h, BBOX_PADDING_RATIO)
-        crop = roi_bgr[y0:y1, x0:x1]
+        crop = crop_masked_object(roi_bgr, info, roi_w, roi_h, BBOX_PADDING_RATIO)
         crops_rgb.append(cv2.cvtColor(crop, cv2.COLOR_BGR2RGB))
 
     features = extractor.extract_features_batch(crops_rgb)

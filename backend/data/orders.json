@@ -1,0 +1,15 @@
+{
+  "ORDER_000123": {
+    "products": [
+      { "sku": "chai", "name": "Chai", "required_quantity": 5 },
+      { "sku": "tuavit", "name": "Tua vít", "required_quantity": 2 }
+    ]
+  },
+
+  "2270679": {
+    "products": [
+      { "sku": "chai", "name": "Chai", "required_quantity": 0 },
+      { "sku": "tuavit", "name": "Tua vít", "required_quantity": 1 }
+    ]
+  }
+}

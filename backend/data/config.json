@@ -1,0 +1,25 @@
+{
+  "sam2_model_id": "facebook/sam2.1-hiera-small",
+  "sam2_points_per_side": 16,
+  "sam2_pred_iou_thresh": 0.8,
+  "sam2_stability_score_thresh": 0.9,
+  "sam2_max_side": 1280,
+  "min_area": 1550,
+  "max_area_ratio": 0.5,
+  "mask_containment_thresh": 0.85,
+  "bbox_padding_ratio": 0.1,
+  "dinov3_model_id": "facebook/dinov3-vitb16-pretrain-lvd1689m",
+  "similarity_threshold": 0.55,
+  "unknown_label": "unknown",
+  "camera_source": "realsense",
+  "static_image_path": "dataset/chai/chai_20260902_154417_003.png",
+  "stream_width": 1280,
+  "stream_height": 720,
+  "stream_fps": 30,
+  "roi": [
+    650,
+    40,
+    1050,
+    306
+  ]
+}

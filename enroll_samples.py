@@ -82,7 +82,7 @@ from common_pipeline import (
     generate_masks,
     filter_background_masks,
     merge_nested_masks,
-    pad_bbox,
+    crop_masked_object,
 )
 
 
@@ -163,9 +163,7 @@ def label_batch_interactively(roi_bgr: np.ndarray, masks_info: list,
     skipped_count = 0
 
     for i, info in enumerate(masks_info):
-        x, y, w, h = info["bbox"]
-        x0, y0, x1, y1 = pad_bbox(x, y, w, h, roi_w, roi_h, BBOX_PADDING_RATIO)
-        crop = roi_bgr[y0:y1, x0:x1]
+        crop = crop_masked_object(roi_bgr, info, roi_w, roi_h, BBOX_PADDING_RATIO)
         if crop.size == 0:
             continue
 

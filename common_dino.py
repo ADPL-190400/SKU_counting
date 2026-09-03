@@ -207,6 +207,22 @@ class LabelMatcher:
         print(f"[DINOv3] Da nap {len(label_names)} nhan tu '{dataset_dir}'.")
         return cls(label_names, ref_matrix)
 
+    def subset(self, labels: list) -> "LabelMatcher":
+        """
+        Tra ve 1 LabelMatcher moi chi gom cac nhan trong `labels`, dung lai
+        hang co san trong ref_matrix (KHONG tinh lai embedding). Dung khi
+        biet truoc danh sach san pham can doi chieu (vd tu 1 don hang cu
+        the) de so khop chi trong pham vi do, giam nham lan voi cac nhan
+        khong lien quan trong dataset. Nhan nao trong `labels` chua co du
+        lieu mau (chua enroll) se tu dong bi bo qua.
+        """
+        keep_idx = [i for i, name in enumerate(self.label_names) if name in labels]
+        if not keep_idx:
+            return LabelMatcher([], np.zeros((0, self.ref_matrix.shape[1]), dtype=np.float32))
+        names = [self.label_names[i] for i in keep_idx]
+        matrix = self.ref_matrix[keep_idx]
+        return LabelMatcher(names, matrix)
+
     def match(self, feature: np.ndarray):
         """So khop 1 feature (da normalize) voi tat ca nhan. Tra ve (label, similarity)."""
         sims = self.ref_matrix @ feature

@@ -239,3 +239,27 @@ def pad_bbox(x, y, w, h, frame_w, frame_h, padding_ratio):
     x1 = min(frame_w, x + w + pad_w)
     y1 = min(frame_h, y + h + pad_h)
     return x0, y0, x1, y1
+
+
+def crop_masked_object(frame_bgr: np.ndarray, info: dict, frame_w: int, frame_h: int,
+                        padding_ratio: float, bg_color=(255, 255, 255)) -> np.ndarray:
+    """
+    Cat 1 vat the DUNG THEO HINH DANG MASK (segmentation cua SAM2) thay vi
+    nguyen ca hinh chu nhat bbox: truoc khi crop, moi pixel NGOAI mask cua
+    vat nay (nen, hoac 1 vat khac lot vao trong bbox) duoc thay bang mau
+    nen trung tinh (mac dinh trang) - phan padding quanh vat cung bi "lam
+    sach" theo cach nay, chi con dung silhouette that cua vat + nen trang.
+
+    Truoc day (pad_bbox + cat thang tu roi_bgr) giu nguyen ca nen/vat ben
+    canh nam trong hinh chu nhat bbox, co the lam nhieu embedding DINOv3
+    khi vat khong phai hinh chu nhat hoac nam sat vat khac.
+
+    info: 1 phan tu masks_info tu generate_masks() - can co "mask" (bool
+    array cung kich thuoc frame_bgr) va "bbox" (x, y, w, h).
+    """
+    x, y, w, h = info["bbox"]
+    x0, y0, x1, y1 = pad_bbox(x, y, w, h, frame_w, frame_h, padding_ratio)
+
+    masked = frame_bgr.copy()
+    masked[~info["mask"]] = bg_color
+    return masked[y0:y1, x0:x1]
