@@ -67,9 +67,14 @@ sku_counting/
 ```bash
 pip install -r backend/requirements.txt
 
-# SAM2 không có trên PyPI, cài từ source:
+# SAM2 không có trên PyPI, cài từ source - LƯU Ý: clone RA NGOÀI thư mục dự
+# án (KHÔNG clone vào trong sku_counting/), vì repo cũng tên là "sam2" sẽ
+# "che" mất package sam2 thật khi chạy uvicorn từ thư mục chứa nó (SAM2 tự
+# phát hiện và chặn tình huống này, báo lỗi "shadowed by the repository name"):
+cd ..
 git clone https://github.com/facebookresearch/sam2.git
 pip install -e sam2
+cd sku_counting
 
 # DINOv3 là model bị "gate" trên Hugging Face - cần đăng nhập:
 #   1. Vào trang model (vd facebook/dinov3-vitb16-pretrain-lvd1689m) trên
