@@ -13,6 +13,7 @@ Ctrl+C va chay lai lenh tren (khong --reload) cho on dinh.
 """
 
 import logging
+import os
 from contextlib import asynccontextmanager
 
 import torch
@@ -105,6 +106,14 @@ async def require_auth(request: Request, call_next):
 # sau se bao middleware them truoc) - dam bao request.session da duoc giai
 # ma tu cookie TRUOC KHI require_auth() o tren doc no.
 app.add_middleware(SessionMiddleware, secret_key=auth_service.load_or_create_secret_key(), max_age=12 * 3600)
+
+# Ca 2 thu muc nay bi gitignore hoan toan (git khong luu thu muc rong) -
+# tren 1 clone moi tinh se chua ton tai, va app.mount() chay luc IMPORT
+# MODULE (truoc ca lifespan, noi InspectionEngine.__init__ moi tu tao
+# RESULTS_DIR) nen phai dam bao ton tai o day, khong thi StaticFiles() bao
+# loi "Directory does not exist" ngay khi khoi dong.
+os.makedirs(RESULTS_DIR, exist_ok=True)
+os.makedirs(DATASET_DIR, exist_ok=True)
 
 app.mount("/results", StaticFiles(directory=RESULTS_DIR), name="results")
 app.mount("/dataset", StaticFiles(directory=DATASET_DIR), name="dataset")
