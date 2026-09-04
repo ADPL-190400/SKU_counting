@@ -60,6 +60,8 @@ export interface Settings {
   max_area_ratio: number;
   mask_containment_thresh: number;
   bbox_padding_ratio: number;
+  min_unknown_score: number;
+  yolo_conf_threshold: number;
 }
 
 export interface HistoryRecord {

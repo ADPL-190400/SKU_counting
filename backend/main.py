@@ -28,6 +28,7 @@ from backend.services import auth_service
 from backend.services.camera_service import CameraService
 from backend.vision.feature_matcher import Dinov3Matcher
 from backend.vision.inspection_engine import InspectionEngine
+from backend.vision.object_detector import Sam2DinoDetector, YoloDetector
 from backend.vision.segmenter import Sam2Segmenter
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -46,11 +47,25 @@ async def lifespan(app: FastAPI):
     logger.info("Loading DINOv3 (%s) + reference dataset...", cfg["dinov3_model_id"])
     matcher = Dinov3Matcher(cfg, device)
 
+    # segmenter/matcher luon nap du dung backend nao cho inspection - trang
+    # SKU Management can SAM2 de chup+tach vat luc them mau, khong lien quan
+    # toi detection_backend. sam2_dino luon "re" (chi wrap lai segmenter/
+    # matcher da nap san) nen dua vao cache luon; yolo thi de lazy - chi nap
+    # khi nguoi dung thuc su chuyen sang (xem /api/settings/detection-backend),
+    # tranh ton VRAM/thoi gian khoi dong neu khong dung toi.
+    detector_cache = {"sam2_dino": Sam2DinoDetector(segmenter, matcher)}
+    if cfg.get("detection_backend") == "yolo":
+        logger.info("Loading YOLO (%s)...", cfg["yolo_model_path"])
+        detector_cache["yolo"] = YoloDetector(cfg["yolo_model_path"], device, cfg)
+    active_detector = detector_cache.get(cfg.get("detection_backend"), detector_cache["sam2_dino"])
+
     app.state.config = cfg
+    app.state.device = device
+    app.state.detector_cache = detector_cache
     app.state.camera_service = CameraService(cfg)
     app.state.segmenter = segmenter
     app.state.matcher = matcher
-    app.state.inspection_engine = InspectionEngine(cfg, segmenter, matcher, RESULTS_DIR)
+    app.state.inspection_engine = InspectionEngine(cfg, active_detector, RESULTS_DIR)
 
     logger.info("READY")
     yield

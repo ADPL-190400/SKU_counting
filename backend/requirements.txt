@@ -9,5 +9,6 @@ torch
 pyrealsense2
 pillow
 transformers>=4.56.0
+ultralytics
 # sam2 khong co tren PyPI - cai tu source:
 #   git clone https://github.com/facebookresearch/sam2.git && pip install -e sam2

@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import type { User } from "./api/client";
 import { logout, stopCamera, whoami } from "./api/client";
+import { Clock } from "./components/Clock";
+import { LanguageSwitch } from "./components/LanguageSwitch";
 import { SettingsPanel } from "./components/SettingsPanel";
+import { useI18n } from "./i18n/LanguageContext";
 import { History } from "./pages/History";
 import { Inspection } from "./pages/Inspection";
 import { Login } from "./pages/Login";
@@ -9,10 +12,10 @@ import { SkuManagement } from "./pages/SkuManagement";
 
 type Page = "inspection" | "sku" | "history";
 
-const NAV_ITEMS: { key: Page; label: string }[] = [
-  { key: "inspection", label: "Inspection" },
-  { key: "sku", label: "SKU Management" },
-  { key: "history", label: "History" },
+const NAV_ITEMS: { key: Page; labelKey: string }[] = [
+  { key: "inspection", labelKey: "nav.inspection" },
+  { key: "sku", labelKey: "nav.sku" },
+  { key: "history", labelKey: "nav.history" },
 ];
 
 // TAM THOI TAT: khop voi AUTH_ENABLED = False trong backend/main.py - API
@@ -21,6 +24,7 @@ const NAV_ITEMS: { key: Page; label: string }[] = [
 const AUTH_ENABLED = false;
 
 function App() {
+  const { t } = useI18n();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [checkingAuth, setCheckingAuth] = useState(AUTH_ENABLED);
@@ -84,7 +88,7 @@ function App() {
   return (
     <div className="flex min-h-screen bg-bg">
       <aside className="w-52 shrink-0 border-r border-border bg-panel/60 p-4 hidden md:block">
-        <div className="text-sm font-black tracking-widest text-text mb-6">SKU INSPECTION</div>
+        <div className="text-sm font-black tracking-widest text-text mb-6">{t("header.brand")}</div>
         <nav className="space-y-1">
           {NAV_ITEMS.map((item) => (
             <button
@@ -96,30 +100,29 @@ function App() {
                   : "text-text-dim border border-transparent hover:bg-white/5"
               }`}
             >
-              {item.label}
+              {t(item.labelKey)}
             </button>
           ))}
-          <div className="px-3 py-2 rounded-lg text-sm text-text-faint cursor-not-allowed" title="Coming soon">
-            Dashboard <span className="ml-1 text-[10px] text-text-faint/70">soon</span>
-          </div>
         </nav>
       </aside>
 
       <div className="flex-1 min-w-0">
         <header className="border-b border-border px-6 py-3 flex items-center justify-between">
-          <h1 className="text-sm font-black tracking-widest text-text">SKU INSPECTION SYSTEM</h1>
+          <h1 className="text-sm font-black tracking-widest text-text">{t("header.title")}</h1>
           <div className="flex items-center gap-4">
             {!AUTH_ENABLED && (
               <span className="text-[11px] text-warn border border-warn/40 bg-warn/10 rounded-full px-2.5 py-1">
-                Đăng nhập tạm tắt (chờ API công ty)
+                {t("header.auth_disabled")}
               </span>
             )}
             <span className="flex items-center gap-2 text-xs text-text-dim">
-              <span className="w-2 h-2 rounded-full bg-good pulse-dot text-good" /> BACKEND ONLINE
+              <span className="w-2 h-2 rounded-full bg-good pulse-dot text-good" /> {t("header.backend_online")}
             </span>
+            <LanguageSwitch />
+            <Clock />
             <button
               onClick={() => setSettingsOpen(true)}
-              title="Vision settings"
+              title={t("header.vision_settings")}
               className="w-8 h-8 flex items-center justify-center rounded-lg border border-border text-text-dim hover:text-accent hover:border-accent/40 transition-colors"
             >
               ⚙
@@ -131,7 +134,7 @@ function App() {
                   onClick={handleLogout}
                   className="text-xs text-text-faint hover:text-bad transition-colors"
                 >
-                  Đăng xuất
+                  {t("header.logout")}
                 </button>
               </div>
             )}

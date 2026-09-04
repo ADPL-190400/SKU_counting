@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useI18n } from "../i18n/LanguageContext";
 import type { SkuInfo } from "../types";
 
 interface SkuPickerProps {
@@ -8,6 +9,7 @@ interface SkuPickerProps {
 }
 
 export function SkuPicker({ value, onChange, skus }: SkuPickerProps) {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -40,7 +42,7 @@ export function SkuPicker({ value, onChange, skus }: SkuPickerProps) {
             e.currentTarget.blur();
           }
         }}
-        placeholder="Chọn SKU có sẵn hoặc gõ tên mới..."
+        placeholder={t("sku_picker.placeholder")}
         className="w-full bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text outline-none focus:border-accent"
       />
       {open && (
@@ -55,10 +57,10 @@ export function SkuPicker({ value, onChange, skus }: SkuPickerProps) {
           className="absolute z-20 mt-1 w-full glass-panel border border-border rounded-lg max-h-64 overflow-y-auto py-1"
         >
           {filtered.length === 0 && skus.length > 0 && (
-            <div className="px-3 py-2 text-xs text-text-faint">Không có SKU khớp — sẽ tạo mới.</div>
+            <div className="px-3 py-2 text-xs text-text-faint">{t("sku_picker.no_match")}</div>
           )}
           {skus.length === 0 && (
-            <div className="px-3 py-2 text-xs text-text-faint">Chưa có SKU nào, gõ tên để tạo mới.</div>
+            <div className="px-3 py-2 text-xs text-text-faint">{t("sku_picker.empty")}</div>
           )}
           {filtered.map((s) => (
             <button
@@ -77,12 +79,12 @@ export function SkuPicker({ value, onChange, skus }: SkuPickerProps) {
                 <div className="w-8 h-8 rounded-md border border-border bg-panel" />
               )}
               <span className="font-mono text-sm text-text flex-1 truncate">{s.sku}</span>
-              <span className="text-xs text-text-faint shrink-0">{s.sample_count} mẫu</span>
+              <span className="text-xs text-text-faint shrink-0">{t("common.sample_count", { count: s.sample_count })}</span>
             </button>
           ))}
           {query && !exactMatch && (
             <div className="px-3 py-2 text-xs text-accent border-t border-border mt-1">
-              + Tạo SKU mới: "{value.trim()}"
+              {t("sku_picker.create_new", { value: value.trim() })}
             </div>
           )}
         </div>

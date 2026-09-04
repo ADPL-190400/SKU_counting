@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/LanguageContext";
 import type { HistoryRecord } from "../types";
 
 function isToday(ts: string): boolean {
@@ -14,6 +15,7 @@ function isToday(ts: string): boolean {
  * chiem phan lon, KPI chi la thong tin phu nen thu gon thanh 1 cum so.
  */
 export function KpiStrip({ records }: { records: HistoryRecord[] }) {
+  const { t } = useI18n();
   const today = records.filter((r) => isToday(r.timestamp));
   const complete = today.filter((r) => r.result === "COMPLETE").length;
   const incomplete = today.filter((r) => r.result === "INCOMPLETE").length;
@@ -22,7 +24,7 @@ export function KpiStrip({ records }: { records: HistoryRecord[] }) {
     <div className="flex items-center gap-4 whitespace-nowrap">
       <div className="text-right leading-tight">
         <div className="text-lg font-black text-text">{today.length}</div>
-        <div className="text-[10px] text-text-faint tracking-wide">HÔM NAY</div>
+        <div className="text-[10px] text-text-faint tracking-wide">{t("kpi.today")}</div>
       </div>
       <div className="h-8 w-px bg-border" />
       <span className="flex items-center gap-1.5 text-sm font-bold text-good">

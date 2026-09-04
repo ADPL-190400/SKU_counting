@@ -33,6 +33,18 @@ DEFAULT_CONFIG = {
     "dinov3_model_id": "facebook/dinov3-vitb16-pretrain-lvd1689m",
     "similarity_threshold": 0.6,
     "unknown_label": "unknown",
+    # Vat "unknown" ma score qua thap (duoi nguong nay) coi la nhieu tach
+    # (mask vun/nen) tu SAM2, khong phai vat la thuc su can bao dong - bo
+    # qua hoan toan (khong ve, khong liet ke, khong dem).
+    "min_unknown_score": 0.2,
+
+    # Backend detect vat the dung cho inspection - "sam2_dino" (mac dinh,
+    # khong can train) hoac "yolo" (model YOLO da train san, 1 class/SKU -
+    # xem backend/vision/object_detector.py). Doi backend can restart lai
+    # server (giong camera_source), khong sua qua Settings panel duoc.
+    "detection_backend": "sam2_dino",
+    "yolo_model_path": "model_yolo/sku110k-yolo11-s640.pt",  # duong dan file .pt, bat buoc neu detection_backend="yolo"
+    "yolo_conf_threshold": 0.5,
 
     "camera_source": "static",  # "realsense" | "static"
     "static_image_path": "",

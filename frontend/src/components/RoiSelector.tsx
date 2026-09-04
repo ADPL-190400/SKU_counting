@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { useI18n } from "../i18n/LanguageContext";
 import { displayToNatural, getRenderedImageRect } from "../lib/roi";
 import type { DisplayRect } from "../lib/roi";
 import type { Roi } from "../types";
@@ -20,6 +21,7 @@ interface Props {
  * kich hoat "Select ROI" / "Full Frame" va chi cho `active` on/off.
  */
 export function RoiSelector({ active, liveImgRef, onConfirm, onCancel }: Props) {
+  const { t } = useI18n();
   const containerRef = useRef<HTMLDivElement>(null);
   const frozenImgRef = useRef<HTMLImageElement>(null);
   const [frozenSrc, setFrozenSrc] = useState<string | null>(null);
@@ -127,19 +129,19 @@ export function RoiSelector({ active, liveImgRef, onConfirm, onCancel }: Props) 
           />
         )}
         <span className="absolute top-2 left-2 text-xs font-semibold bg-warn/90 text-slate-950 px-2 py-0.5 rounded pointer-events-none">
-          KÉO CHUỘT ĐỂ CHỌN VÙNG QUAN TÂM (ROI)
+          {t("roi.drag_hint")}
         </span>
       </div>
 
       <div className="flex items-center justify-center gap-2 bg-black/70 py-2">
         <button onClick={handleConfirm} disabled={!hasDraft} className="btn btn-primary btn-sm">
-          Xác nhận
+          {t("roi.confirm")}
         </button>
         <button onClick={handleRedraw} disabled={!hasDraft} className="btn btn-ghost btn-sm">
-          Vẽ lại
+          {t("roi.redraw")}
         </button>
         <button onClick={onCancel} className="btn btn-ghost btn-sm">
-          Hủy
+          {t("roi.cancel")}
         </button>
       </div>
     </div>

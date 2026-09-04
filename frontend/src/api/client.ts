@@ -118,6 +118,22 @@ export async function updateSettings(partial: Partial<Settings>): Promise<Settin
   return handle<Settings>(res);
 }
 
+export type DetectionBackend = "sam2_dino" | "yolo";
+
+export async function getDetectionBackend(): Promise<{ detection_backend: DetectionBackend; yolo_available: boolean }> {
+  const res = await fetch("/api/settings/detection-backend");
+  return handle(res);
+}
+
+export async function setDetectionBackend(backend: DetectionBackend): Promise<{ detection_backend: DetectionBackend }> {
+  const res = await fetch("/api/settings/detection-backend", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ detection_backend: backend }),
+  });
+  return handle(res);
+}
+
 export async function getSkus(): Promise<SkuInfo[]> {
   const res = await fetch("/api/skus");
   return handle<SkuInfo[]>(res);

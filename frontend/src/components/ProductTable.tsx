@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/LanguageContext";
 import type { Order, SkuStatus, VerificationRow } from "../types";
 
 interface Props {
@@ -28,6 +29,7 @@ const STATUS_ICON: Record<SkuStatus, string> = {
 };
 
 export function ProductTable({ order, verification }: Props) {
+  const { t } = useI18n();
   const hasResult = !!verification;
   const requiredSkus = new Set(order?.products.map((p) => p.sku) ?? []);
 
@@ -43,13 +45,14 @@ export function ProductTable({ order, verification }: Props) {
   return (
     <div className="glass-panel p-4">
       <h2 className="text-xs font-semibold tracking-widest text-text-faint mb-3">
-        REQUIRED PRODUCTS{hasResult && <span className="text-accent"> · VERIFICATION</span>}
+        {t("product.heading")}
+        {hasResult && <span className="text-accent">{t("product.heading_verification")}</span>}
       </h2>
       {!order ? (
         <div className="flex flex-col items-center text-center py-6 gap-2">
           <span className="text-3xl opacity-40">📋</span>
-          <p className="text-text-faint text-sm">No order scanned yet</p>
-          <p className="text-text-faint/70 text-xs">Scan an order code above to load its requirements.</p>
+          <p className="text-text-faint text-sm">{t("product.empty_title")}</p>
+          <p className="text-text-faint/70 text-xs">{t("product.empty_hint")}</p>
         </div>
       ) : (
         <>
@@ -57,10 +60,10 @@ export function ProductTable({ order, verification }: Props) {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-text-faint border-b border-border">
-                <th className="pb-2 pr-2 font-medium">Product</th>
-                <th className="pb-2 pr-2 font-medium text-right">Req.</th>
-                {hasResult && <th className="pb-2 pr-2 font-medium text-right">Det.</th>}
-                {hasResult && <th className="pb-2 font-medium text-right">Status</th>}
+                <th className="pb-2 pr-2 font-medium">{t("product.col_product")}</th>
+                <th className="pb-2 pr-2 font-medium text-right">{t("product.col_req")}</th>
+                {hasResult && <th className="pb-2 pr-2 font-medium text-right">{t("product.col_det")}</th>}
+                {hasResult && <th className="pb-2 font-medium text-right">{t("detection.col_status")}</th>}
               </tr>
             </thead>
             <tbody>
@@ -89,7 +92,7 @@ export function ProductTable({ order, verification }: Props) {
             </tbody>
           </table>
           <div className="flex justify-between mt-3 pt-3 border-t border-border text-sm">
-            <span className="text-text-dim font-medium">Total</span>
+            <span className="text-text-dim font-medium">{t("product.total")}</span>
             <span className="text-text font-bold">
               {hasResult ? `${totalDetected}/${totalRequired}` : totalRequired}
             </span>

@@ -1,3 +1,4 @@
+import { useI18n } from "../i18n/LanguageContext";
 import type { VerificationRow } from "../types";
 
 /**
@@ -6,6 +7,7 @@ import type { VerificationRow } from "../types";
  * REQUIRED PRODUCTS (xem Inspection.tsx) nen xep doc, khong chia cot ngang.
  */
 export function ResultStatus({ rows, unknownCount }: { rows: VerificationRow[]; unknownCount: number }) {
+  const { t } = useI18n();
   const missing = rows.filter((r) => r.status === "MISSING");
   const excess = rows.filter((r) => r.status === "EXCESS");
 
@@ -15,30 +17,38 @@ export function ResultStatus({ rows, unknownCount }: { rows: VerificationRow[]; 
     <div className="flex flex-col gap-3">
       {missing.length > 0 && (
         <div className="glass-panel border-bad/40 p-3 text-sm">
-          <div className="font-bold text-bad mb-2">MISSING PRODUCTS</div>
+          <div className="font-bold text-bad mb-2">{t("result_status.missing_heading")}</div>
           {missing.map((r) => (
             <div key={r.sku} className="text-text-dim">
-              {r.name} — Required: {r.required}, Detected: {r.detected}, Missing: {r.required - r.detected}
+              {t("result_status.missing_row", {
+                name: r.name,
+                required: r.required,
+                detected: r.detected,
+                missing: r.required - r.detected,
+              })}
             </div>
           ))}
         </div>
       )}
       {excess.length > 0 && (
         <div className="glass-panel border-warn/40 p-3 text-sm">
-          <div className="font-bold text-warn mb-2">EXCESS PRODUCTS</div>
+          <div className="font-bold text-warn mb-2">{t("result_status.excess_heading")}</div>
           {excess.map((r) => (
             <div key={r.sku} className="text-text-dim">
-              {r.name} — Required: {r.required}, Detected: {r.detected}, Excess: {r.detected - r.required}
+              {t("result_status.excess_row", {
+                name: r.name,
+                required: r.required,
+                detected: r.detected,
+                excess: r.detected - r.required,
+              })}
             </div>
           ))}
         </div>
       )}
       {unknownCount > 0 && (
         <div className="glass-panel border-warn/40 p-3 text-sm">
-          <div className="font-bold text-warn mb-2">UNKNOWN OBJECTS</div>
-          <div className="text-text-dim">
-            {unknownCount} object{unknownCount > 1 ? "s" : ""} could not be classified. Please check the captured image.
-          </div>
+          <div className="font-bold text-warn mb-2">{t("result_status.unknown_heading")}</div>
+          <div className="text-text-dim">{t("result_status.unknown_body", { count: unknownCount })}</div>
         </div>
       )}
     </div>

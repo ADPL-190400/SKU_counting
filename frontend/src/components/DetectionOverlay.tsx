@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useI18n } from "../i18n/LanguageContext";
 import type { DetectedObject } from "../types";
 
 interface Props {
@@ -7,11 +8,12 @@ interface Props {
 }
 
 export function DetectionOverlay({ imageUrl, objects }: Props) {
+  const { t } = useI18n();
   const [selected, setSelected] = useState<DetectedObject | null>(null);
 
   return (
     <div className="glass-panel p-4">
-      <h2 className="text-xs font-semibold tracking-widest text-text-faint mb-3">DETECTION RESULT</h2>
+      <h2 className="text-xs font-semibold tracking-widest text-text-faint mb-3">{t("detection.heading")}</h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-4">
         <div className="bg-black rounded-[10px] border border-border overflow-hidden flex items-center justify-center">
@@ -24,8 +26,8 @@ export function DetectionOverlay({ imageUrl, objects }: Props) {
               <tr className="text-left text-text-faint border-b border-border">
                 <th className="pb-2 font-medium">ID</th>
                 <th className="pb-2 font-medium">SKU</th>
-                <th className="pb-2 font-medium text-right">Score</th>
-                <th className="pb-2 font-medium text-right">Status</th>
+                <th className="pb-2 font-medium text-right">{t("detection.col_score")}</th>
+                <th className="pb-2 font-medium text-right">{t("detection.col_status")}</th>
               </tr>
             </thead>
             <tbody>
@@ -49,7 +51,7 @@ export function DetectionOverlay({ imageUrl, objects }: Props) {
                         }`}
                       >
                         <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                        {isUnknown ? "UNKNOWN" : "OK"}
+                        {isUnknown ? t("detection.unknown") : "OK"}
                       </span>
                     </td>
                   </tr>
@@ -58,7 +60,7 @@ export function DetectionOverlay({ imageUrl, objects }: Props) {
               {objects.length === 0 && (
                 <tr>
                   <td colSpan={4} className="py-4 text-center text-text-faint">
-                    No objects detected.
+                    {t("detection.empty")}
                   </td>
                 </tr>
               )}
@@ -68,18 +70,18 @@ export function DetectionOverlay({ imageUrl, objects }: Props) {
           {selected && (
             <div className="bg-bg border border-border rounded-[10px] p-3 text-sm">
               <div className="text-text-dim mb-1">
-                Object <span className="font-mono text-text">#{selected.id}</span>
+                {t("detection.object_prefix")}<span className="font-mono text-text">#{selected.id}</span>
               </div>
               <div className="mb-2">
-                Prediction:{" "}
+                {t("detection.prediction")}{" "}
                 <span className={`font-bold ${selected.sku === "unknown" ? "text-bad" : "text-good"}`}>
                   {selected.sku.toUpperCase()}
                 </span>
               </div>
               <div className="mb-2">
-                Similarity: <span className="font-mono">{selected.score.toFixed(3)}</span>
+                {t("detection.similarity")}<span className="font-mono">{selected.score.toFixed(3)}</span>
               </div>
-              <div className="text-text-dim mb-1">Top candidates:</div>
+              <div className="text-text-dim mb-1">{t("detection.top_candidates")}</div>
               <ul className="font-mono">
                 {selected.top_candidates.map(([label, score]) => (
                   <li key={label} className="flex justify-between">

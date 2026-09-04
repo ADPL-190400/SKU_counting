@@ -7,9 +7,11 @@ import { ProductTable } from "../components/ProductTable";
 import { ResultCard } from "../components/ResultCard";
 import { ResultStatus } from "../components/ResultStatus";
 import { ScanInput } from "../components/ScanInput";
+import { useI18n } from "../i18n/LanguageContext";
 import type { HistoryRecord, InspectionResult, Order, Roi } from "../types";
 
 export function Inspection() {
+  const { t } = useI18n();
   const [order, setOrder] = useState<Order | null>(null);
   const [scanError, setScanError] = useState<string | null>(null);
   const [scanning, setScanning] = useState(false);
@@ -42,7 +44,7 @@ export function Inspection() {
 
   async function handleScan(code: string) {
     if (!cameraRunning) {
-      setScanError("Kết nối camera trước khi quét.");
+      setScanError(t("inspection.camera_required"));
       return;
     }
     setScanning(true);
@@ -57,7 +59,7 @@ export function Inspection() {
       await runInspectionForOrder(o);
     } catch (e) {
       setOrder(null);
-      setScanError(e instanceof ApiRequestError ? e.message : "Failed to load order.");
+      setScanError(e instanceof ApiRequestError ? e.message : t("inspection.order_load_error"));
     } finally {
       setScanning(false);
     }
@@ -71,7 +73,7 @@ export function Inspection() {
       setResult(r);
       refreshHistory();
     } catch (e) {
-      setInspectionError(e instanceof ApiRequestError ? e.message : "Inspection failed.");
+      setInspectionError(e instanceof ApiRequestError ? e.message : t("inspection.run_error"));
     } finally {
       setInspecting(false);
     }
@@ -83,7 +85,7 @@ export function Inspection() {
       await startCamera();
       setCameraRunning(true);
     } catch (e) {
-      setInspectionError(e instanceof ApiRequestError ? e.message : "Camera offline.");
+      setInspectionError(e instanceof ApiRequestError ? e.message : t("inspection.camera_offline_error"));
     }
   }
 
@@ -143,8 +145,12 @@ export function Inspection() {
         <>
           <DetectionOverlay imageUrl={result.image_url} objects={result.objects} />
           <div className="text-xs text-text-faint text-right font-mono">
-            Total: {result.processing_time_ms.total.toFixed(0)}ms · SAM2: {result.processing_time_ms.sam2.toFixed(0)}ms
-            · DINOv3: {result.processing_time_ms.dinov3.toFixed(0)}ms · Matching: {result.processing_time_ms.matching.toFixed(0)}ms
+            {t("inspection.timing", {
+              total: result.processing_time_ms.total.toFixed(0),
+              sam2: result.processing_time_ms.sam2.toFixed(0),
+              dinov3: result.processing_time_ms.dinov3.toFixed(0),
+              matching: result.processing_time_ms.matching.toFixed(0),
+            })}
           </div>
         </>
       )}

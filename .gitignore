@@ -1,5 +1,6 @@
 venv/
 dataset/
+model_yolo/
 __pycache__/
 *.pyc
 .claude/

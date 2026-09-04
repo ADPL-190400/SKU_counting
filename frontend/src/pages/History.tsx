@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ApiRequestError, getHistory } from "../api/client";
+import { useI18n } from "../i18n/LanguageContext";
 import type { HistoryRecord, OverallResult } from "../types";
 
 const RESULT_STYLES: Record<OverallResult, string> = {
@@ -8,10 +9,16 @@ const RESULT_STYLES: Record<OverallResult, string> = {
   ERROR: "bg-bad/10 border-bad/40 text-bad",
 };
 
-const FILTER_OPTIONS: { value: OverallResult | "ALL"; label: string }[] = [
-  { value: "ALL", label: "All" },
-  { value: "COMPLETE", label: "Complete" },
-  { value: "INCOMPLETE", label: "Incomplete" },
+const RESULT_LABEL_KEY: Record<OverallResult, string> = {
+  COMPLETE: "result.complete_title",
+  INCOMPLETE: "result.incomplete_title",
+  ERROR: "result.error_title",
+};
+
+const FILTER_OPTIONS: { value: OverallResult | "ALL"; labelKey: string }[] = [
+  { value: "ALL", labelKey: "history.filter_all" },
+  { value: "COMPLETE", labelKey: "history.filter_complete" },
+  { value: "INCOMPLETE", labelKey: "history.filter_incomplete" },
 ];
 
 function formatTimestamp(ts: string): string {
@@ -22,6 +29,7 @@ function formatTimestamp(ts: string): string {
 }
 
 export function History() {
+  const { t } = useI18n();
   const [records, setRecords] = useState<HistoryRecord[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
@@ -31,7 +39,9 @@ export function History() {
   useEffect(() => {
     getHistory()
       .then(setRecords)
-      .catch((e) => setError(e instanceof ApiRequestError ? e.message : "Failed to load history."));
+      .catch((e) => setError(e instanceof ApiRequestError ? e.message : t("history.load_error")));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- chi fetch 1
+    // lan luc mount; khong muon goi lai API chi vi nguoi dung doi ngon ngu.
   }, []);
 
   const filtered = useMemo(() => {
@@ -45,13 +55,13 @@ export function History() {
   return (
     <div className="p-6 space-y-4">
       <div className="glass-panel p-4">
-        <h2 className="text-xs font-semibold tracking-widest text-text-faint mb-3">INSPECTION HISTORY</h2>
+        <h2 className="text-xs font-semibold tracking-widest text-text-faint mb-3">{t("history.heading")}</h2>
 
         <div className="flex flex-wrap gap-3 mb-4">
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Tìm theo mã đơn..."
+            placeholder={t("history.search_placeholder")}
             className="bg-bg border border-border rounded-lg px-3 py-2 text-sm text-text outline-none focus:border-accent w-64"
           />
           <div className="flex gap-1">
@@ -65,7 +75,7 @@ export function History() {
                     : "bg-transparent border-border text-text-faint hover:text-text-dim"
                 }`}
               >
-                {opt.label}
+                {t(opt.labelKey)}
               </button>
             ))}
           </div>
@@ -76,13 +86,13 @@ export function History() {
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-text-faint border-b border-border">
-              <th className="pb-2 pr-4 font-medium">Code</th>
-              <th className="pb-2 pr-4 font-medium">Date</th>
-              <th className="pb-2 pr-4 font-medium">Result</th>
-              <th className="pb-2 pr-4 font-medium text-right">Products</th>
-              <th className="pb-2 pr-4 font-medium text-right">Unknown</th>
-              <th className="pb-2 pr-4 font-medium">Operator</th>
-              <th className="pb-2 font-medium text-right">Action</th>
+              <th className="pb-2 pr-4 font-medium">{t("history.col_code")}</th>
+              <th className="pb-2 pr-4 font-medium">{t("history.col_date")}</th>
+              <th className="pb-2 pr-4 font-medium">{t("history.col_result")}</th>
+              <th className="pb-2 pr-4 font-medium text-right">{t("history.col_products")}</th>
+              <th className="pb-2 pr-4 font-medium text-right">{t("history.col_unknown")}</th>
+              <th className="pb-2 pr-4 font-medium">{t("history.col_operator")}</th>
+              <th className="pb-2 font-medium text-right">{t("history.col_action")}</th>
             </tr>
           </thead>
           <tbody>
@@ -96,7 +106,7 @@ export function History() {
                   <td className="py-2.5 pr-4">
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold border ${RESULT_STYLES[r.result]}`}>
                       <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                      {r.result.replace("_", " ")}
+                      {t(RESULT_LABEL_KEY[r.result])}
                     </span>
                   </td>
                   <td className="py-2.5 pr-4 text-right font-mono text-text-dim">{detected}/{required}</td>
@@ -104,7 +114,7 @@ export function History() {
                   <td className="py-2.5 pr-4 text-text-dim">{r.operator}</td>
                   <td className="py-2.5 text-right">
                     <button onClick={() => setSelected(r)} className="text-accent hover:underline text-xs font-semibold">
-                      View
+                      {t("history.view")}
                     </button>
                   </td>
                 </tr>
@@ -113,7 +123,7 @@ export function History() {
             {filtered.length === 0 && (
               <tr>
                 <td colSpan={7} className="py-6 text-center text-text-faint">
-                  Không có bản ghi nào khớp bộ lọc.
+                  {t("history.empty")}
                 </td>
               </tr>
             )}
@@ -125,7 +135,7 @@ export function History() {
         <div className="glass-panel p-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-xs font-semibold tracking-widest text-text-faint">
-              CHI TIẾT — <span className="text-accent font-mono">{selected.code}</span>
+              {t("history.detail_heading")}<span className="text-accent font-mono">{selected.code}</span>
             </h2>
             <button onClick={() => setSelected(null)} className="text-text-faint hover:text-text text-lg leading-none">
               ×
@@ -142,8 +152,8 @@ export function History() {
                 <thead>
                   <tr className="text-left text-text-faint border-b border-border">
                     <th className="pb-2 font-medium">SKU</th>
-                    <th className="pb-2 font-medium text-right">Required</th>
-                    <th className="pb-2 font-medium text-right">Detected</th>
+                    <th className="pb-2 font-medium text-right">{t("history.detail_col_required")}</th>
+                    <th className="pb-2 font-medium text-right">{t("history.detail_col_detected")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -156,7 +166,7 @@ export function History() {
                   ))}
                   {selected.unknown_count > 0 && (
                     <tr>
-                      <td className="py-1.5 text-warn">Unknown</td>
+                      <td className="py-1.5 text-warn">{t("history.col_unknown")}</td>
                       <td className="py-1.5 text-right font-mono text-text-dim">—</td>
                       <td className="py-1.5 text-right font-mono text-warn">{selected.unknown_count}</td>
                     </tr>
@@ -165,9 +175,9 @@ export function History() {
               </table>
 
               <div className="text-xs text-text-faint space-y-1 pt-2 border-t border-border">
-                <div>Threshold: <span className="font-mono text-text-dim">{selected.threshold}</span></div>
-                <div>Processing time: <span className="font-mono text-text-dim">{selected.processing_time_ms.toFixed(0)}ms</span></div>
-                <div>Operator: <span className="font-mono text-text-dim">{selected.operator}</span></div>
+                <div>{t("history.threshold_label")}<span className="font-mono text-text-dim">{selected.threshold}</span></div>
+                <div>{t("history.processing_time_label")}<span className="font-mono text-text-dim">{selected.processing_time_ms.toFixed(0)}ms</span></div>
+                <div>{t("history.operator_label")}<span className="font-mono text-text-dim">{selected.operator}</span></div>
               </div>
             </div>
           </div>

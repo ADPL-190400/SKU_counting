@@ -1,5 +1,6 @@
 import { useRef, useState } from "react";
 import { cameraStreamUrl } from "../api/client";
+import { useI18n } from "../i18n/LanguageContext";
 import { RoiOverlay } from "./RoiOverlay";
 import type { Roi } from "../types";
 
@@ -26,6 +27,7 @@ export function CameraView({
   roi,
   orderCode,
 }: Props) {
+  const { t } = useI18n();
   const imgRef = useRef<HTMLImageElement>(null);
   const [streamKey, setStreamKey] = useState(0);
   const [captured, setCaptured] = useState<string | null>(null);
@@ -73,7 +75,7 @@ export function CameraView({
           Ket qua kiem tra nam rieng o ResultCard.tsx (dau cot sidebar). */}
       <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-black/20">
         <span className="font-mono text-sm text-accent tracking-wide truncate">
-          {orderCode ?? <span className="text-text-faint">NO ORDER SCANNED</span>}
+          {orderCode ?? <span className="text-text-faint">{t("camera.no_order")}</span>}
         </span>
         <span
           className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold border shrink-0 ${
@@ -81,7 +83,7 @@ export function CameraView({
           }`}
         >
           <span className={`w-1.5 h-1.5 rounded-full bg-current ${running ? "pulse-dot" : ""}`} />
-          {running ? "CONNECTED" : "DISCONNECTED"}
+          {running ? t("camera.connected") : t("camera.disconnected")}
         </span>
       </div>
 
@@ -98,11 +100,11 @@ export function CameraView({
             crossOrigin="anonymous"
           />
         ) : (
-          <span className="text-text-faint text-sm">Camera offline</span>
+          <span className="text-text-faint text-sm">{t("common.camera_offline")}</span>
         )}
         {captured && (
           <span className="absolute top-2 left-2 text-xs font-semibold bg-warn/90 text-slate-950 px-2 py-0.5 rounded">
-            CAPTURED
+            {t("camera.captured")}
           </span>
         )}
         {running && !captured && <RoiOverlay imgRef={imgRef} roi={roi} />}
@@ -119,21 +121,21 @@ export function CameraView({
           disabled={connecting}
           className={`btn btn-sm ${running ? "btn-warn" : "btn-ghost"}`}
         >
-          {connecting ? "..." : running ? "Disconnect Camera" : "Connect Camera"}
+          {connecting ? "..." : running ? t("common.disconnect_camera") : t("common.connect_camera")}
         </button>
         <button onClick={handleCapture} disabled={!running || !!captured} className="btn btn-ghost btn-sm">
-          Capture
+          {t("camera.capture")}
         </button>
         <button
           onClick={onRunInspection}
           disabled={!running || !hasOrder || inspecting}
-          title={!running ? "Connect the camera first" : !hasOrder ? "Scan an order code first" : undefined}
+          title={!running ? t("camera.connect_first") : !hasOrder ? t("camera.scan_first") : undefined}
           className="btn btn-primary btn-sm"
         >
-          {inspecting ? "Running..." : "RUN INSPECTION"}
+          {inspecting ? t("camera.running") : t("camera.run_inspection")}
         </button>
         <button onClick={handleReset} className="btn btn-ghost btn-sm ml-auto">
-          Reset
+          {t("camera.reset")}
         </button>
       </div>
     </div>

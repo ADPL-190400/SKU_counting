@@ -18,11 +18,13 @@ import {
 import { RoiOverlay } from "../components/RoiOverlay";
 import { RoiSelector } from "../components/RoiSelector";
 import { SkuPicker } from "../components/SkuPicker";
+import { useI18n } from "../i18n/LanguageContext";
 import type { CaptureCrop, Roi, SkuInfo, SkuSample } from "../types";
 
 type SourceMode = "camera" | "upload";
 
 export function SkuManagement() {
+  const { t } = useI18n();
   const [skus, setSkus] = useState<SkuInfo[]>([]);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [samples, setSamples] = useState<SkuSample[]>([]);
@@ -62,7 +64,7 @@ export function SkuManagement() {
   function refreshSkus() {
     getSkus()
       .then(setSkus)
-      .catch((e) => setError(e instanceof ApiRequestError ? e.message : "Failed to load SKUs."));
+      .catch((e) => setError(e instanceof ApiRequestError ? e.message : t("sku.load_error")));
   }
 
   useEffect(() => {
@@ -81,7 +83,7 @@ export function SkuManagement() {
       const res = await apiSetRoi(newRoi);
       setRoiState(res.roi);
     } catch (e) {
-      setError(e instanceof ApiRequestError ? e.message : "Failed to save ROI.");
+      setError(e instanceof ApiRequestError ? e.message : t("sku.roi_save_error"));
     }
   }
 
@@ -90,7 +92,7 @@ export function SkuManagement() {
       const res = await apiSetRoi(null);
       setRoiState(res.roi);
     } catch (e) {
-      setError(e instanceof ApiRequestError ? e.message : "Failed to clear ROI.");
+      setError(e instanceof ApiRequestError ? e.message : t("sku.roi_clear_error"));
     }
   }
 
@@ -104,7 +106,7 @@ export function SkuManagement() {
       setSamples(res.samples);
       setExpanded(skuLabel);
     } catch (e) {
-      setError(e instanceof ApiRequestError ? e.message : "Failed to load samples.");
+      setError(e instanceof ApiRequestError ? e.message : t("sku.samples_load_error"));
     }
   }
 
@@ -137,7 +139,7 @@ export function SkuManagement() {
         setStreamKey((k) => k + 1);
       }
     } catch (e) {
-      setError(e instanceof ApiRequestError ? e.message : "Camera offline.");
+      setError(e instanceof ApiRequestError ? e.message : t("common.camera_offline"));
     } finally {
       setConnecting(false);
     }
@@ -150,7 +152,7 @@ export function SkuManagement() {
       const res = await captureSkuCrops();
       setCrops(res.crops);
     } catch (e) {
-      setError(e instanceof ApiRequestError ? e.message : "Capture failed.");
+      setError(e instanceof ApiRequestError ? e.message : t("sku.capture_failed"));
     } finally {
       setCapturing(false);
     }
@@ -158,7 +160,7 @@ export function SkuManagement() {
 
   async function handleAddCrop(crop: CaptureCrop) {
     if (!label.trim()) {
-      setError("Nhập tên SKU trước khi thêm mẫu.");
+      setError(t("sku.name_required"));
       return;
     }
     try {
@@ -166,7 +168,7 @@ export function SkuManagement() {
       setCrops((prev) => prev.filter((c) => c.index !== crop.index));
       refreshSkus();
     } catch (e) {
-      setError(e instanceof ApiRequestError ? e.message : "Save failed.");
+      setError(e instanceof ApiRequestError ? e.message : t("sku.save_failed"));
     }
   }
 
@@ -191,11 +193,11 @@ export function SkuManagement() {
       const res = await uploadSkuCrops(pendingFiles);
       setCrops(res.crops);
       if (res.skipped_filenames.length > 0) {
-        setError(`Bỏ qua ${res.skipped_filenames.length} file không đọc được: ${res.skipped_filenames.join(", ")}`);
+        setError(t("sku.skipped_files", { count: res.skipped_filenames.length, files: res.skipped_filenames.join(", ") }));
       }
       setPendingFiles([]);
     } catch (e) {
-      setError(e instanceof ApiRequestError ? e.message : "Tách vật thất bại.");
+      setError(e instanceof ApiRequestError ? e.message : t("sku.segment_failed"));
     } finally {
       setUploading(false);
     }
@@ -204,11 +206,11 @@ export function SkuManagement() {
   return (
     <div className="p-6 space-y-4">
       <div className="glass-panel p-4">
-        <h2 className="text-xs font-semibold tracking-widest text-text-faint mb-3">ADD SAMPLES</h2>
+        <h2 className="text-xs font-semibold tracking-widest text-text-faint mb-3">{t("sku.add_samples_heading")}</h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4">
           <div>
-            <label className="block text-xs text-text-dim mb-1">SKU Name</label>
+            <label className="block text-xs text-text-dim mb-1">{t("sku.name_label")}</label>
             <div className="mb-3">
               <SkuPicker value={label} onChange={setLabel} skus={skus} />
             </div>
@@ -218,13 +220,13 @@ export function SkuManagement() {
                 onClick={() => setSourceMode("camera")}
                 className={`btn-sm rounded-md px-3 ${sourceMode === "camera" ? "bg-accent text-bg" : "text-text-dim hover:text-text"}`}
               >
-                Camera
+                {t("sku.tab_camera")}
               </button>
               <button
                 onClick={() => setSourceMode("upload")}
                 className={`btn-sm rounded-md px-3 ${sourceMode === "upload" ? "bg-accent text-bg" : "text-text-dim hover:text-text"}`}
               >
-                Tải ảnh lên
+                {t("sku.tab_upload")}
               </button>
             </div>
 
@@ -235,17 +237,17 @@ export function SkuManagement() {
                   disabled={connecting}
                   className={`btn btn-sm ${cameraRunning ? "btn-warn" : "btn-ghost"}`}
                 >
-                  {connecting ? "..." : cameraRunning ? "Disconnect Camera" : "Connect Camera"}
+                  {connecting ? "..." : cameraRunning ? t("common.disconnect_camera") : t("common.connect_camera")}
                 </button>
                 <button onClick={handleCapture} disabled={!cameraRunning || capturing} className="btn btn-primary btn-sm">
-                  {capturing ? "Đang tách vật..." : "Capture & Segment"}
+                  {capturing ? t("sku.segmenting") : t("sku.capture_segment")}
                 </button>
                 <button onClick={() => setRoiEditing(true)} disabled={!cameraRunning} className="btn btn-ghost btn-sm">
-                  Select ROI
+                  {t("sku.select_roi")}
                 </button>
                 {roi && (
                   <button onClick={handleClearRoi} className="btn btn-ghost btn-sm">
-                    Full Frame
+                    {t("sku.full_frame")}
                   </button>
                 )}
               </div>
@@ -255,7 +257,7 @@ export function SkuManagement() {
                 disabled={pendingFiles.length === 0 || uploading}
                 className="btn btn-primary btn-sm"
               >
-                {uploading ? "Đang tách vật..." : `Tách vật (${pendingFiles.length} ảnh)`}
+                {uploading ? t("sku.segmenting") : t("sku.upload_segment_btn", { count: pendingFiles.length })}
               </button>
             )}
           </div>
@@ -271,7 +273,7 @@ export function SkuManagement() {
                   className="max-w-full max-h-[260px] object-contain"
                 />
               ) : (
-                <span className="text-text-faint text-sm">Camera offline</span>
+                <span className="text-text-faint text-sm">{t("common.camera_offline")}</span>
               )}
               {cameraRunning && !roiEditing && <RoiOverlay imgRef={imgRef} roi={roi} />}
               <RoiSelector
@@ -311,8 +313,8 @@ export function SkuManagement() {
               />
               {pendingFiles.length === 0 ? (
                 <div className="h-full min-h-[176px] flex flex-col items-center justify-center text-center text-text-faint text-sm gap-1">
-                  <span>Kéo thả ảnh vào đây hoặc bấm để chọn</span>
-                  <span className="text-xs">Ảnh toàn cảnh (chưa crop), có thể chọn nhiều ảnh</span>
+                  <span>{t("sku.dropzone_hint")}</span>
+                  <span className="text-xs">{t("sku.dropzone_subhint")}</span>
                 </div>
               ) : (
                 <div className="grid grid-cols-3 sm:grid-cols-4 gap-2" onClick={(e) => e.stopPropagation()}>
@@ -334,7 +336,7 @@ export function SkuManagement() {
                     }}
                     className="flex items-center justify-center border border-dashed border-border rounded-md text-text-faint text-xs aspect-square hover:border-accent hover:text-accent"
                   >
-                    + Thêm ảnh
+                    {t("sku.add_more_images")}
                   </button>
                 </div>
               )}
@@ -347,7 +349,7 @@ export function SkuManagement() {
         {crops.length > 0 && (
           <div className="mt-4">
             <div className="text-xs text-text-dim mb-2">
-              {crops.length} object{crops.length > 1 ? "s" : ""} detected — add as "<span className="text-accent">{label || "?"}</span>" or skip:
+              {t("sku.crops_detected", { count: crops.length, label: label || "?" })}
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
               {crops.map((crop) => (
@@ -355,10 +357,10 @@ export function SkuManagement() {
                   <img src={crop.image_base64} alt={`crop ${crop.index}`} className="w-full aspect-square object-cover rounded-md mb-2" />
                   <div className="flex gap-1">
                     <button onClick={() => handleAddCrop(crop)} className="btn btn-primary btn-sm flex-1 !px-1">
-                      Add
+                      {t("sku.add")}
                     </button>
                     <button onClick={() => handleSkipCrop(crop)} className="btn btn-ghost btn-sm flex-1 !px-1">
-                      Skip
+                      {t("sku.skip")}
                     </button>
                   </div>
                 </div>
@@ -369,9 +371,9 @@ export function SkuManagement() {
       </div>
 
       <div className="glass-panel p-4">
-        <h2 className="text-xs font-semibold tracking-widest text-text-faint mb-3">REGISTERED SKU</h2>
+        <h2 className="text-xs font-semibold tracking-widest text-text-faint mb-3">{t("sku.registered_heading")}</h2>
         {skus.length === 0 ? (
-          <p className="text-text-faint text-sm">Chưa có SKU nào. Thêm mẫu ở trên để bắt đầu.</p>
+          <p className="text-text-faint text-sm">{t("sku.empty")}</p>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {skus.map((s) => (
@@ -384,15 +386,15 @@ export function SkuManagement() {
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="font-mono text-text truncate">{s.sku}</div>
-                    <div className="text-xs text-text-faint">{s.sample_count} samples</div>
+                    <div className="text-xs text-text-faint">{t("common.sample_count", { count: s.sample_count })}</div>
                   </div>
                 </div>
                 <div className="flex border-t border-border">
                   <button onClick={() => toggleExpand(s.sku)} className="flex-1 text-xs py-2 text-text-dim hover:bg-white/5">
-                    {expanded === s.sku ? "Ẩn mẫu" : "Xem mẫu"}
+                    {expanded === s.sku ? t("sku.hide_samples") : t("sku.view_samples")}
                   </button>
                   <button onClick={() => handleDeleteSku(s.sku)} className="flex-1 text-xs py-2 text-bad hover:bg-bad/10 border-l border-border">
-                    Xóa SKU
+                    {t("sku.delete_sku")}
                   </button>
                 </div>
                 {expanded === s.sku && (
@@ -404,7 +406,7 @@ export function SkuManagement() {
                           onClick={() => handleDeleteSample(s.sku, sample.filename)}
                           className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 text-bad text-xs flex items-center justify-center transition-opacity rounded-md"
                         >
-                          Xóa
+                          {t("sku.delete_sample")}
                         </button>
                       </div>
                     ))}

@@ -74,11 +74,34 @@ pip install -e sam2
 # DINOv3 là model bị "gate" trên Hugging Face - cần đăng nhập:
 #   1. Vào trang model (vd facebook/dinov3-vitb16-pretrain-lvd1689m) trên
 #      huggingface.co, bấm "Agree and access repository"
-#   2. huggingface-cli login   (hoặc set biến môi trường HF_TOKEN=hf_xxx...)
+#   2. Đăng nhập trên MÁY sẽ chạy code (chỉ cần 1 lần/máy) - dùng lệnh `hf`
+#      (CLI cũ `huggingface-cli` đã bị deprecated, không còn hoạt động):
+#        Windows: venv\Scripts\hf.exe auth login
+#        Linux:   venv/bin/hf auth login
 ```
 
 Yêu cầu: Python 3.11+, khuyến nghị có GPU (CUDA) — chạy được trên CPU nhưng
 chậm hơn nhiều.
+
+### Chạy offline (không cần Internet mỗi lần mở)
+
+Lần đầu chạy, backend tự tải checkpoint SAM2 + DINOv3 (cần đăng nhập +
+Internet như trên) rồi cache lại cục bộ (`~/.cache/huggingface/hub`). Các lần
+sau, dù dùng cache, backend vẫn gửi 1 request kiểm tra nhanh lên Hugging Face
+mỗi lúc khởi động (thấy dòng `HTTP Request: HEAD https://huggingface.co/...`
+trong log) — vẫn cần mạng cho request nhỏ này, dù không tải lại model.
+
+Muốn chạy hẳn offline sau khi đã có cache (**bắt buộc phải chạy thành công ít
+nhất 1 lần có mạng trước**), set biến môi trường `HF_HUB_OFFLINE=1` cố định
+trên máy đó:
+
+```bash
+# Windows (mở terminal mới sau khi chạy lệnh này để có hiệu lực):
+setx HF_HUB_OFFLINE 1
+
+# Linux (bash):
+echo 'export HF_HUB_OFFLINE=1' >> ~/.bashrc && source ~/.bashrc
+```
 
 ### Frontend
 
@@ -123,6 +146,39 @@ không có camera RealSense cắm sẵn. Để dùng camera thật:
 
 rồi khởi động lại backend. Cần cài `pyrealsense2` và camera Intel RealSense
 đã cắm.
+
+## Detection backend: SAM2+DINOv3 vs YOLO
+
+Mặc định `detection_backend` trong `backend/data/config.json` là
+`"sam2_dino"` — pipeline gốc (segment class-agnostic rồi so khớp few-shot,
+không cần train khi thêm SKU mới). Có thể chuyển sang dùng model YOLO
+(ultralytics, đã train sẵn, 1 class = 1 tên SKU) thay cho bước detect này:
+
+```json
+{
+  "detection_backend": "yolo",
+  "yolo_model_path": "đường/dẫn/tới/model.pt",
+  "yolo_conf_threshold": 0.5
+}
+```
+
+rồi khởi động lại backend (đổi backend cần load lại model, giống
+`camera_source`). `yolo_conf_threshold` sau đó chỉnh được trực tiếp qua
+Settings panel (⚙ ở header) không cần restart.
+
+Lưu ý:
+- SAM2 + DINOv3 **luôn được nạp** bất kể `detection_backend` là gì, vì trang
+  SKU Management vẫn cần SAM2 để chụp + tách vật lúc thêm mẫu mới — đổi sang
+  YOLO chỉ đổi bước detect lúc **kiểm tra (inspection)**, không đụng tới
+  trang SKU Management.
+- YOLO là closed-set (đã train sẵn theo class) — thêm SKU mới cần train lại
+  model YOLO (annotate bounding box + train), khác với SAM2+DINOv3 (chỉ cần
+  thêm vài ảnh mẫu là dùng được ngay, không cần train).
+- Model YOLO không có class "vật lạ" riêng thì chế độ này **không phát hiện
+  được vật hoàn toàn lạ** (SAM2+DINOv3 làm được vì SAM2 tách được mọi vật
+  thể, DINOv3 mới quyết định vật nào không khớp SKU nào). Bù lại, SKU nào
+  YOLO nhận diện được nhưng KHÔNG có trong đơn hàng đang quét vẫn tự động
+  hiện là **EXCESS** (sản phẩm dư/sai) — không cần cấu hình gì thêm.
 
 ## Các trang chính
 

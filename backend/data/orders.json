@@ -8,8 +8,8 @@
 
   "2270679": {
     "products": [
-      { "sku": "chai", "name": "Chai", "required_quantity": 0 },
-      { "sku": "tuavit", "name": "Tua vít", "required_quantity": 1 }
+      { "sku": "redcake", "name": "Red Cake", "required_quantity": 2 },
+      { "sku": "whitecake", "name": "White Cake", "required_quantity": 1 }
     ]
   }
 }
