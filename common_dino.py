@@ -140,16 +140,29 @@ class LabelMatcher:
 
     @classmethod
     def from_dataset_dir(cls, extractor: DINOFeatureExtractor, dataset_dir: str,
-                          min_images_per_label: int = 1) -> "LabelMatcher":
+                          min_images_per_label: int = 1, allow_empty: bool = False) -> "LabelMatcher":
         """
         Doc dataset_dir/<nhan>/*.{jpg,jpeg,png,bmp}, moi thu muc con la 1
         nhan. Trich feature tung anh bang DINOv3, lay trung binh + chuan
         hoa lai (L2-normalize) de ra reference feature dai dien cho nhan do.
+
+        allow_empty: mac dinh False - dataset rong (chua enroll gi) se
+            sys.exit(1), dung cho cac script CLI (enroll_samples.py,
+            live_classify.py) vi cac tool nay CAN dataset da co san moi
+            dung duoc, bao loi ro rang huu ich hon la chay tiep. Web backend
+            (Dinov3Matcher) truyen allow_empty=True - server van phai khoi
+            dong duoc tren may hoan toan moi (dataset/ rong), de nguoi dung
+            vao duoc trang SKU Management enroll SKU dau tien qua web, thay
+            vi ca server sap chi vi chua co du lieu.
         """
         import glob
         import os
 
         if not os.path.isdir(dataset_dir):
+            if allow_empty:
+                print(f"[CANH BAO] Khong tim thay thu muc dataset: {dataset_dir} - "
+                      f"chay voi 0 nhan, moi vat se la 'unknown' cho toi khi enroll SKU dau tien.")
+                return cls([], np.zeros((0, 1), dtype=np.float32))
             print(f"[LOI] Khong tim thay thu muc dataset: {dataset_dir}. "
                   f"Hay chay enroll_samples.py truoc de gan nhan vat the.")
             sys.exit(1)
@@ -159,6 +172,10 @@ class LabelMatcher:
             if os.path.isdir(os.path.join(dataset_dir, d))
         )
         if len(label_dirs) == 0:
+            if allow_empty:
+                print(f"[CANH BAO] Thu muc dataset '{dataset_dir}' chua co nhan nao - "
+                      f"chay voi 0 nhan, moi vat se la 'unknown' cho toi khi enroll SKU dau tien.")
+                return cls([], np.zeros((0, 1), dtype=np.float32))
             print(f"[LOI] Thu muc dataset '{dataset_dir}' chua co nhan nao. "
                   f"Hay chay enroll_samples.py truoc de gan nhan vat the.")
             sys.exit(1)
@@ -199,6 +216,10 @@ class LabelMatcher:
             print(f"[DINOv3] Nhan '{label}': {len(images_rgb)} anh mau.")
 
         if len(label_names) == 0:
+            if allow_empty:
+                print(f"[CANH BAO] Khong co nhan nao hop le trong '{dataset_dir}' "
+                      f"(can >= {min_images_per_label} anh moi nhan) - chay voi 0 nhan.")
+                return cls([], np.zeros((0, 1), dtype=np.float32))
             print(f"[LOI] Khong co nhan nao hop le trong '{dataset_dir}' "
                   f"(can >= {min_images_per_label} anh moi nhan).")
             sys.exit(1)

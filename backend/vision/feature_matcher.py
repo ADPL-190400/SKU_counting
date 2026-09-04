@@ -38,7 +38,11 @@ class Dinov3Matcher(FeatureMatcher):
         self._cfg = cfg
         self._extractor = DINOFeatureExtractor(cfg["dinov3_model_id"], device)
         self._extractor.load_model()
-        self._label_matcher = LabelMatcher.from_dataset_dir(self._extractor, self._dataset_dir())
+        # allow_empty=True: server phai khoi dong duoc tren may hoan toan
+        # moi (dataset/ rong), de vao duoc trang SKU Management enroll SKU
+        # dau tien qua web - khac CLI (enroll_samples.py/live_classify.py)
+        # van bao loi ro rang neu chay khi chua co du lieu.
+        self._label_matcher = LabelMatcher.from_dataset_dir(self._extractor, self._dataset_dir(), allow_empty=True)
         self.last_timing_ms = {"dinov3": 0.0, "matching": 0.0}
 
     def _dataset_dir(self):
@@ -47,8 +51,9 @@ class Dinov3Matcher(FeatureMatcher):
         return DATASET_DIR
 
     def reload_dataset(self):
-        """Nap lai reference dataset (goi sau khi enroll them mau moi)."""
-        self._label_matcher = LabelMatcher.from_dataset_dir(self._extractor, self._dataset_dir())
+        """Nap lai reference dataset (goi sau khi enroll/xoa mau) - allow_empty=True
+        vi xoa SKU cuoi cung se dua dataset ve rong, van khong duoc lam sap server."""
+        self._label_matcher = LabelMatcher.from_dataset_dir(self._extractor, self._dataset_dir(), allow_empty=True)
 
     def extract_and_match(self, roi_bgr, masks_info: list, allowed_labels: list[str] | None = None) -> list[dict]:
         if len(masks_info) == 0:
