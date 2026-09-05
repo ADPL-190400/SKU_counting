@@ -110,6 +110,12 @@ echo 'export HF_HUB_OFFLINE=1' >> ~/.bashrc && source ~/.bashrc
 
 ### Frontend
 
+Yêu cầu **Node.js ≥ 20.12** (Vite 8 dùng `rolldown`, cần API mới của
+`node:util` mà Node 18 chưa có — sẽ báo lỗi `SyntaxError: ... does not
+provide an export named 'styleText'` nếu Node quá cũ). Kiểm tra bằng
+`node -v`; nếu cũ hơn, cài qua [nvm](https://github.com/nvm-sh/nvm) rồi
+`nvm install --lts && nvm use --lts` thay vì đụng vào Node hệ thống.
+
 ```bash
 cd frontend
 npm install

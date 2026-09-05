@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ApiRequestError, getCameraStatus, getHistory, getOrder, getRoi, runInspection, startCamera, stopCamera } from "../api/client";
+import { ApiRequestError, getCameraStatus, getHistory, getOrder, getRoi, resetRelay, runInspection, startCamera, stopCamera } from "../api/client";
 import { CameraView } from "../components/CameraView";
 import { DetectionOverlay } from "../components/DetectionOverlay";
 import { KpiStrip } from "../components/KpiStrip";
@@ -40,6 +40,11 @@ export function Inspection() {
     getRoi()
       .then((r) => setRoi(r.roi))
       .catch(() => setRoi(null));
+    // Ve trung tinh den bao ket qua (relay) moi lan trang duoc tai/tai lai,
+    // tranh con sang nham ket qua cu tu phien truoc.
+    resetRelay().catch(() => {
+      /* den bao ket qua la tinh nang phu, khong chan luong chinh neu loi */
+    });
   }, []);
 
   async function handleScan(code: string) {

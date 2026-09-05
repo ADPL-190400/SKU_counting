@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, Request
 
 from backend.config import ORDERS_PATH
 from backend.models.schemas import InspectionRequest
-from backend.services import history_service, verification_service
+from backend.services import history_service, relay_service, verification_service
 from backend.services.camera_service import CameraUnavailableError
 
 router = APIRouter()
@@ -22,6 +22,10 @@ def run_inspection(body: InspectionRequest, request: Request):
     order = orders.get(body.order_code)
     if order is None:
         raise HTTPException(status_code=404, detail=f"Order code not found: {body.order_code}")
+
+    # Bat dau 1 lan inspection moi - tat den bao ket qua (relay) cua lan
+    # truoc, tranh hien thi nham ket qua cu trong luc dang chay lan nay.
+    relay_service.set_verdict_lights(None)
 
     camera_service = request.app.state.camera_service
     engine = request.app.state.inspection_engine
@@ -50,6 +54,10 @@ def run_inspection(body: InspectionRequest, request: Request):
         products, result["detected_counts"], result["unknown_count"]
     )
     verification_ms = (time.time() - t0) * 1000
+
+    # Sang den bao ket qua that su - COMPLETE/INCOMPLETE moi ung voi 1 trong
+    # 2 relay, gia tri overall khac (vd ERROR) thi ve trung tinh (khong doan bua).
+    relay_service.set_verdict_lights({"COMPLETE": True, "INCOMPLETE": False}.get(overall))
 
     required = {p["sku"]: p["required_quantity"] for p in products}
     image_url = f"/results/{result['image_name']}"
@@ -90,3 +98,11 @@ def run_inspection(body: InspectionRequest, request: Request):
     })
 
     return response
+
+
+@router.post("/relay/reset")
+def reset_relay():
+    """Ve trang thai trung tinh (tat ca 2 den bao ket qua) - goi luc trang
+    Inspection moi tai/tai lai, tranh con sang nham ket qua cu."""
+    relay_service.set_verdict_lights(None)
+    return {"ok": True}

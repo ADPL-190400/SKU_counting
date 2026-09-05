@@ -25,7 +25,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from backend.api import auth, camera, history, inspection, orders, settings, sku
 from backend.config import DATASET_DIR, RESULTS_DIR, load_config
-from backend.services import auth_service
+from backend.services import auth_service, relay_service
 from backend.services.camera_service import CameraService
 from backend.vision.feature_matcher import Dinov3Matcher
 from backend.vision.inspection_engine import InspectionEngine
@@ -67,6 +67,10 @@ async def lifespan(app: FastAPI):
     app.state.segmenter = segmenter
     app.state.matcher = matcher
     app.state.inspection_engine = InspectionEngine(cfg, active_detector, RESULTS_DIR)
+
+    # Ve trang thai trung tinh (tat ca 2 den bao ket qua) luc khoi dong, tranh
+    # con sang nham tu lan chay truoc - xem backend/services/relay_service.py.
+    relay_service.set_verdict_lights(None)
 
     logger.info("READY")
     yield

@@ -77,6 +77,10 @@ export async function runInspection(orderCode: string): Promise<InspectionResult
   return handle<InspectionResult>(res);
 }
 
+export async function resetRelay(): Promise<void> {
+  await fetch("/api/relay/reset", { method: "POST" });
+}
+
 export interface User {
   email: string;
 }
