@@ -6,7 +6,18 @@ dat), hoat dong nhu 2 den bao trang thai: sang DUNG 1 trong 2 khi CO ket
 qua, TAT CA HAI khi dang chay 1 lan inspection moi hoac khong co ket qua
 hop le (loi he thong) - xem set_verdict_lights().
 """
-import hid
+# import hid co the that bai NGAY LUC LOAD MODULE (khong chi luc mo thiet
+# bi) neu thu vien he thong libhidapi chua duoc cai (package pip `hidapi`
+# chi la binding ctypes, tren Linux can cai them lib native qua apt, vd
+# `sudo apt install libhidapi-hidraw0`) - bat try/except o day, KHONG de
+# loi import lam sap ca server, dung tinh than "den bao ket qua la tinh
+# nang phu" nhu ban goc PROCESS_INSPECTION.
+try:
+    import hid
+    _HID_IMPORT_ERROR = None
+except Exception as _exc:  # ImportError (thieu lib native) hoac loi khac
+    hid = None
+    _HID_IMPORT_ERROR = _exc
 
 VENDOR_ID = 0x16C0
 PRODUCT_ID = 0x05DF
@@ -19,6 +30,8 @@ RELAY_FAIL = 1
 
 def _control_relay(relay_num, state):
     """relay_num: 1..4. state: True (BAT) | False (TAT)."""
+    if hid is None:
+        raise RuntimeError(f"Package 'hid' khong nap duoc: {_HID_IMPORT_ERROR}")
     if not 1 <= relay_num <= 4:
         raise ValueError("Relay number must be between 1 and 4")
     cmd_byte = CMD_ON if state else CMD_OFF
